@@ -1,4 +1,4 @@
-class Dive1
+class Dive2
 
 	FORWARD = 'forward'
 	DOWN	  = 'down'
@@ -22,14 +22,16 @@ class Dive1
 		def calculate_pos_and_depth(parsed_lines)
 			horizontal = 0
 			depth = 0
+			aim   = 0
 
 			parsed_lines.each do |line|
 				if line[0] == FORWARD
 					horizontal += line[1]
+					depth += (aim * line[1])
 				elsif line[0] == DOWN
-					depth += line[1]
+					aim += line[1]
 				else
-					depth -= line[1]
+					aim -= line[1]
 				end
 			end
 
@@ -43,8 +45,8 @@ class Dive1
 
 end
 
-lines  = Dive1.parse_file
-values = Dive1.calculate_pos_and_depth(lines)
+lines  = Dive2.parse_file
+values = Dive2.calculate_pos_and_depth(lines)
 puts "values are: #{values}"
-result = Dive1.perform_calculations(values)
+result = Dive2.perform_calculations(values)
 puts "Result of multiplying horizontal position and depth: #{result}"
