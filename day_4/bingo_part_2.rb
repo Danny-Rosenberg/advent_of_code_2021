@@ -1,4 +1,4 @@
-class Bingo1
+class Bingo2
 
 	INPUT = "day_4_input.txt"
 	WINNING_LINE = ['x', 'x', 'x', 'x', 'x']
@@ -11,14 +11,24 @@ class Bingo1
 	end
 
 
-	def run_game
+	# run the game until all boards have won except one
+	def run_anti_game
+		eligible_boards_remaining = (0...boards.length).to_a
+		final_board = []
 		numbers.each do |num|
 			execute_turn(num)
-			winning_board = find_winning_board
+			winner_indices = find_winning_boards(eligible_boards_remaining)
+			if winner_indices.length == 1 && eligible_boards_remaining.length == 1
+				final_board = boards[eligible_boards_remaining.last]
+			else
+				winner_indices.each { |i| eligible_boards_remaining.delete(i) }
+				winner_indices = []
+			end
 
-			unless winning_board.nil?
-				puts "we found a winning board: #{winning_board}"
-				puts "Score of the winning board is: #{calculate_score(winning_board, num)}"
+			if !final_board.empty?
+				puts "what's our board? #{boards[eligible_boards_remaining.last]}"
+				puts "what's the called number? #{num}"
+				puts "Score of the losing-est board is: #{calculate_score(boards[eligible_boards_remaining.last], num)}"
 				break
 			end
 		end
@@ -61,13 +71,16 @@ private
 	end
 
 
-	def find_winning_board
+	def find_winning_boards(eligible_board_indices)
+		winning_boards = []
 		(0...boards.length).each do |b|
+			unless eligible_board_indices.include?(b)
+				next
+			end
 			# check rows
 			boards[b].each do |line|
 				if line == WINNING_LINE
-					puts "hit a row win"
-					return boards[b]
+					winning_boards << b
 				end
 			end
 
@@ -78,12 +91,11 @@ private
 					column << boards[b][y][x] # row changes, column stays the same
 				end
 				if column == WINNING_LINE
-					puts "hit a column win"
-					return boards[b]
+					winning_boards << b unless winning_boards.include?(b)
 				end
 			end
 		end
-		nil
+		winning_boards
 	end
 
 
@@ -126,5 +138,5 @@ private
 
 end
 
-bingo = Bingo1.new
-bingo.run_game
+bingo = Bingo2.new
+bingo.run_anti_game
