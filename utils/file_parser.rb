@@ -20,7 +20,7 @@ class FileParser
 
 	# ex. [1, 3, 4, 1, 4, 7]
 	def parse_single_row_csv
-		File.read('day_6_input.txt')
+		File.read(file)
 				.chomp!
 				.split(',')
 				.map(&:to_i)
