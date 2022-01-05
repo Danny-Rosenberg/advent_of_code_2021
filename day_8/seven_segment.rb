@@ -74,7 +74,7 @@ private
 
 			signal_array[0] = find_zero_index(one_signal, seven_signal)
 			signal_array[2], signal_array[4], signal_array[5] = find_two_four_five_indices(signals, one_signal)
-			signal_array[1] = find_one_index(signals, signal_array)
+			signal_array[1] = find_one_index(signal_array[4])
 		end
 
 
@@ -83,37 +83,46 @@ private
 		end
 
 
-		def seven_signal
-			@seven_signal ||= signals.find { |sig| sig.length == 3 }
+		def two_signal
+			@two_signal ||= two_three_five_signals.select { |sig| (nine_signal.split('') - sig.split('')).length == 2 }
 		end
 
 
-		def find_six_and_nine
-			@six_and_nine_signals ||= signals.filter { |sig| sig.length == 6 }
-		end
-
-
-		def three
+		def three_signal
 			@three ||= \
-				two_three_five_signals.filter { |sig| (sig.split('') - one_signal.split('')).length == 3 }
+				two_three_five_signals.select { |sig| (sig.split('') - one_signal.split('')).length == 3 }
+		end
+
+
+		def five_signal
+			@five_signal ||= (two_three_five_signals - [two_signal, three_signal]).first
 		end
 
 
 		def two_three_five_signals
-			@two_three_five_signals = signals.filter { |sig| sig.length == 5 }
+			@two_three_five_signals = signals.select { |sig| sig.length == 5 }
 		end
 
 
-		def six
+		def six_and_nine_signals
+			@six_and_nine_signals ||= signals.select { |sig| sig.length == 6 }
+		end
+
+
+		def six_signal
 			@six ||= \
 				(six_and_nine_signals[0].split('') - one_signal.split('')).length == 5 ? six_and_nine_signals[0] : six_and_nine_signals[1]
 		end
 
 
-		def nine(signals)
+		def seven_signal
+			@seven_signal ||= signals.find { |sig| sig.length == 3 }
+		end
+
+
+		def nine_signal
 			@nine ||= \
-				six_and_nine = find_six_and_nine_signals(signals)
-				six(signals) == six_and_nine[0] ? six_and_nine[1] : six_and_nine[0]
+				six_signal == six_and_nine_signals[0] ? six_and_nine_signals[1] : six_and_nine_signals[0]
 		end
 
 
@@ -123,8 +132,8 @@ private
 		end
 
 
-		def find_one_index(signals, signal_array)
-
+		def find_one_index(four_index)
+		  five_signal.split('') - two_signal.split('') - [four_index] - one_signal.split('')
 		end
 
 
