@@ -26,4 +26,17 @@ class FileParser
 				.map(&:to_i)
 	end
 
+
+	# for day 8 i.e. aebgc fa afe | fa af defgc
+	# add to a hash
+	def parse_spaces_with_line
+		signals_output = {}
+		File.foreach(file) do |line|
+			line.chomp!
+			line = line.split(' | ')
+			signals_output[line[0].split(' ')] = line[1].split(' ')
+		end
+		signals_output
+	end
+
 end
