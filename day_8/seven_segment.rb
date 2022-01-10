@@ -30,6 +30,7 @@ class SevenSegment
 	def add_output_values
 		signals_output.sum do |signals, output|
 			decrypted_array = SignalDecrypter.new(signals).decrypt_signals
+			puts "the decrypted array is: #{decrypted_array}"
 			# decrypt outputs
 		end
 	end
@@ -62,6 +63,8 @@ private
 
 	class SignalDecrypter
 
+		ALL_SEGMENTS = 'abcdefg'
+
 		attr_reader :signals
 
 		def initialize(signals)
@@ -69,12 +72,20 @@ private
 		end
 
 
-		def decrypt_signals(signals)
-			signal_array = [-1, -1, -1, -1, -1, -1, -1]
+		def decrypt_signals
+			signal_indices = [-1, -1, -1, -1, -1, -1, -1]
 
-			signal_array[0] = find_zero_index(one_signal, seven_signal)
-			signal_array[2], signal_array[4], signal_array[5] = find_two_four_five_indices(signals, one_signal)
-			signal_array[1] = find_one_index(signal_array[4])
+			signal_indices[0] = find_zero_index
+			signal_indices[2], signal_indices[4], signal_indices[5] = find_two_four_five_indices
+			signal_indices[1] = find_one_index
+			signal_indices[3] = find_three_index
+			signal_indices[6] = find_six_index(signal_indices)
+			signal_indices
+		end
+
+
+		def zero_signal
+			@zero_signal ||= six_nine_zero_signals.find { |sig| sig != six_signal && sig != nine_signal }
 		end
 
 
@@ -84,13 +95,18 @@ private
 
 
 		def two_signal
-			@two_signal ||= two_three_five_signals.select { |sig| (nine_signal.split('') - sig.split('')).length == 2 }
+			@two_signal ||= two_three_five_signals.select { |sig| (nine_signal.split('') - sig.split('')).length == 2 }.first
 		end
 
 
 		def three_signal
-			@three ||= \
-				two_three_five_signals.select { |sig| (sig.split('') - one_signal.split('')).length == 3 }
+			@three_signal ||= \
+				two_three_five_signals.select { |sig| (sig.split('') - one_signal.split('')).length == 3 }.first
+		end
+
+
+		def four_signal
+			@four_signal ||= signals.find { |sig| sig.length == 4 }
 		end
 
 
@@ -100,18 +116,17 @@ private
 
 
 		def two_three_five_signals
-			@two_three_five_signals = signals.select { |sig| sig.length == 5 }
+			@two_three_five_signals ||= signals.select { |sig| sig.length == 5 }
 		end
 
 
-		def six_and_nine_signals
-			@six_and_nine_signals ||= signals.select { |sig| sig.length == 6 }
+		def six_nine_zero_signals
+			@six_nine_zero_signals ||= signals.select { |sig| sig.length == 6 }
 		end
 
 
 		def six_signal
-			@six ||= \
-				(six_and_nine_signals[0].split('') - one_signal.split('')).length == 5 ? six_and_nine_signals[0] : six_and_nine_signals[1]
+			@six_signal ||= six_nine_zero_signals.find { |sig| (sig.split('') - one_signal.split('')).length == 5 }
 		end
 
 
@@ -121,28 +136,43 @@ private
 
 
 		def nine_signal
-			@nine ||= \
-				six_signal == six_and_nine_signals[0] ? six_and_nine_signals[1] : six_and_nine_signals[0]
+			@nine_signal ||= \
+				six = six_signal # some weird memoization problem here
+				zero_nine = six_nine_zero_signals.reject { |sig| sig == six_signal }
+				zero_nine.select { |sig| (sig.split('') - four_signal.split('')).length == 2 }.first
 		end
 
 
 		def find_zero_index
 			# 'dab' - 'ab' = 'd'
-			seven_signal.split('') - one_signal.split('').first
+			(seven_signal.split('') - one_signal.split('')).first
 		end
 
 
-		def find_one_index(four_index)
-		  five_signal.split('') - two_signal.split('') - [four_index] - one_signal.split('')
+		def find_one_index
+			(five_signal.split('') - two_signal.split('') - one_signal.split('')).first
+		end
+
+
+		def find_three_index
+			# 'bcdf' - 'abcefg' = 'd'
+			(four_signal.split('') - zero_signal.split('')).first
 		end
 
 
 		def find_two_four_five_indices
-			four_index = (six.split('') - (nine.split('') - one_signal.split(''))).first
-			two_index = (one_signal.split('') - six.split('')).first
+			four_index = (six_signal.split('') - nine_signal.split('')).first
+			two_index = (one_signal.split('') - six_signal.split('')).first
 			five_index = (one_signal.split('') - [two_index]).first
 			return two_index, four_index, five_index
 		end
+
+
+		def find_six_index(signal_indices)
+			# 'abcdefg' - 'abcdef'
+			(ALL_SEGMENTS.split('') - signal_indices).first
+		end
+
 	end
 end
 
@@ -152,3 +182,6 @@ require_relative '../utils/file_parser'
 signals_output = FileParser.new('day_8_input.txt').parse_spaces_with_line
 sev = SevenSegment.new(signals_output)
 puts "the sum of all known segments (1, 4, 7, 8) is: #{sev.add_unique_segments}"
+
+# day 2 solution
+sev.add_output_values
