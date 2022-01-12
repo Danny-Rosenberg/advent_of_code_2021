@@ -1,5 +1,7 @@
 class SevenSegment
 
+	# model of segments converted into an array
+	#
 	#			  [0]
 	#				 -
 	#	 [1] |   | [2]
@@ -29,9 +31,8 @@ class SevenSegment
 
 	def add_output_values
 		signals_output.sum do |signals, output|
-			decrypted_array = SignalDecrypter.new(signals).decrypt_signals
-			puts "the decrypted array is: #{decrypted_array}"
-			# decrypt outputs
+			decrypted_array = SignalDecrypter.new(signals).decrypt
+			OutputDecrypter.new(decrypted_array, output).decrypt
 		end
 	end
 
@@ -61,6 +62,57 @@ private
 	end
 
 
+  class OutputDecrypter
+		require 'set'
+
+		attr_reader :signals, :outputs
+
+		# the design of array segments from segment design at top of this file
+		SEGMENTS = {
+			0 => Set.new([0, 1, 2, 4, 5, 6]),
+			1 => Set.new([2, 5]),
+			2 => Set.new([0, 2, 3, 4, 6]),
+			3 => Set.new([0, 2, 3, 5, 6]),
+			4 => Set.new([1, 2, 3, 5]),
+			5 => Set.new([0, 1, 3, 5, 6]),
+			6 => Set.new([0, 1, 3, 4, 5, 6]),
+			7 => Set.new([0, 2, 5]),
+			8 => Set.new([0, 1, 2, 3, 4, 5, 6]),
+			9 => Set.new([0, 1, 2, 3, 5, 6])
+		}
+
+		def initialize(signals, outputs)
+			@signals = signals
+			@outputs = outputs
+		end
+
+
+		def decrypt
+			digits = []
+			outputs.each do |out|
+				digits << decrypt_single_output(out)
+			end
+			# take [8, 3, 9, 4] and turn it into integer 8394
+			digits.join.to_i
+		end
+
+	private
+
+
+		# take 'acf' and determine which segment array it matches to
+		def decrypt_single_output(out)
+			indices = out.split('').map { |o| signals.find_index(o) }
+			indices_set = Set.new(indices)
+			number, set = SEGMENTS.find do |number, set|
+				indices_set == set
+			end
+			number
+		end
+
+
+	end
+
+
 	class SignalDecrypter
 
 		ALL_SEGMENTS = 'abcdefg'
@@ -72,7 +124,7 @@ private
 		end
 
 
-		def decrypt_signals
+		def decrypt
 			signal_indices = [-1, -1, -1, -1, -1, -1, -1]
 
 			signal_indices[0] = find_zero_index
@@ -184,4 +236,5 @@ sev = SevenSegment.new(signals_output)
 puts "the sum of all known segments (1, 4, 7, 8) is: #{sev.add_unique_segments}"
 
 # day 2 solution
-sev.add_output_values
+output_values = sev.add_output_values
+puts "the sum of all decrypted output values is: #{output_values}"
